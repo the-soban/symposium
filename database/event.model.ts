@@ -1,4 +1,4 @@
-import { Schema, model, models, Document, type CallbackWithoutResultAndOptionalError } from 'mongoose';
+import { Schema, model, models, Document } from 'mongoose';
 
 // TypeScript interface for Event document
 export interface IEvent extends Document {
@@ -30,7 +30,6 @@ const EventSchema = new Schema<IEvent>(
     },
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -110,11 +109,8 @@ const EventSchema = new Schema<IEvent>(
 );
 
 // Pre-save hook for slug generation and data normalization
-EventSchema.pre('save', function (
-  this: IEvent,
-  next: CallbackWithoutResultAndOptionalError
-) {
-  const event = this as IEvent;
+EventSchema.pre('save', async function (this: IEvent) {
+  const event = this;
 
   // Generate slug only if title changed or document is new
   if (event.isModified('title') || event.isNew) {
@@ -131,8 +127,7 @@ EventSchema.pre('save', function (
     event.time = normalizeTime(event.time);
   }
 
-  next();
-} as any);
+});
 
 // Helper function to generate URL-friendly slug
 function generateSlug(title: string): string {
@@ -147,11 +142,27 @@ function generateSlug(title: string): string {
 
 // Helper function to normalize date to ISO format
 function normalizeDate(dateString: string): string {
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) {
+  const match = dateString.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (!match) {
     throw new Error('Invalid date format');
   }
-  return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  if (month < 1 || month > 12) {
+    throw new Error('Invalid date format');
+  }
+
+  const daysInMonth = [31, year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  if (day < 1 || day > daysInMonth[month - 1]) {
+    throw new Error('Invalid date format');
+  }
+
+  return match[0]; // Return validated YYYY-MM-DD format
 }
 
 // Helper function to normalize time format

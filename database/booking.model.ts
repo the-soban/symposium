@@ -1,18 +1,18 @@
-import { Schema, model, models, Document, Types, type CallbackWithoutResultAndOptionalError } from 'mongoose';
+import * as mongoose from 'mongoose';
 import Event from './event.model';
 
 // TypeScript interface for Booking document
-export interface IBooking extends Document {
-  eventId: Types.ObjectId;
+export interface IBooking extends mongoose.Document {
+  eventId: mongoose.Types.ObjectId;
   email: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const BookingSchema = new Schema<IBooking>(
+const BookingSchema = new mongoose.Schema<IBooking>(
   {
     eventId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Event',
       required: [true, 'Event ID is required'],
     },
@@ -37,11 +37,8 @@ const BookingSchema = new Schema<IBooking>(
 );
 
 // Pre-save hook to validate events exists before creating booking
-BookingSchema.pre('save', (async function (
-  this: IBooking,
-  next: CallbackWithoutResultAndOptionalError
-) {
-  const booking = this as IBooking;
+BookingSchema.pre('save', async function (this: IBooking) {
+  const booking = this;
 
   // Only validate eventId if it's new or modified
   if (booking.isModified('eventId') || booking.isNew) {
@@ -49,19 +46,31 @@ BookingSchema.pre('save', (async function (
       const eventExists = await Event.findById(booking.eventId).select('_id');
 
       if (!eventExists) {
-        const error = new Error(`Event with ID ${booking.eventId} does not exist`);
-        error.name = 'ValidationError';
-        return next(error);
+        const error = new mongoose.Error.ValidationError();
+        error.addError(
+          'eventId',
+          new mongoose.Error.ValidatorError({
+            message: `Event with ID ${booking.eventId} does not exist`,
+            path: 'eventId',
+            value: booking.eventId,
+          })
+        );
+        throw error;
       }
     } catch {
-      const validationError = new Error('Invalid events ID format or database error');
-      validationError.name = 'ValidationError';
-      return next(validationError);
+      const validationError = new mongoose.Error.ValidationError();
+      validationError.addError(
+        'eventId',
+        new mongoose.Error.ValidatorError({
+          message: 'Invalid events ID format or database error',
+          path: 'eventId',
+          value: booking.eventId,
+        })
+      );
+      throw validationError;
     }
   }
-
-  next();
-}) as any);
+});
 
 // Create index on eventId for faster queries
 BookingSchema.index({ eventId: 1 });
@@ -74,6 +83,6 @@ BookingSchema.index({ email: 1 });
 
 // Enforce one booking per events per email
 BookingSchema.index({ eventId: 1, email: 1 }, { unique: true, name: 'uniq_event_email' });
-const Booking = models.Booking || model<IBooking>('Booking', BookingSchema);
+const Booking = mongoose.models.Booking || mongoose.model<IBooking>('Booking', BookingSchema);
 
 export default Booking;
