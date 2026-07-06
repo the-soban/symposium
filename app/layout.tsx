@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="en"
     >
       <body className={`${schibstedGrotesk.variable} ${martianMono.variable} min-h-screen antialiased flex flex-col`}>
-        <div className="absolute">
+        <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
           <LightRays
             raysOrigin="top-center-offset"
             raysColor="#ff7630"
@@ -47,7 +47,9 @@ export default function RootLayout({
             saturation={1}
           />
         </div>
-        {children}
+        <main>
+          {children}
+        </main>
       </body>
     </html>
   );

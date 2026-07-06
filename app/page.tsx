@@ -1,6 +1,12 @@
+import ExploreBtn from "@/components/ExploreBtn"
+
 const Page = () => {
   return (
-    <h1>Welcome to Next.js 16!</h1>
+    <section>
+      <h1 className="text-center">The Hub for Every Tech Event You Can't Miss</h1>
+      <p className="text-center mt-5">Hackathons, Meetups, and Conferences. Alll in One Place.</p>
+      <ExploreBtn />
+    </section>
   )
 }
 
