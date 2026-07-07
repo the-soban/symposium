@@ -42,21 +42,9 @@ BookingSchema.pre('save', async function (this: IBooking) {
 
   // Only validate eventId if it's new or modified
   if (booking.isModified('eventId') || booking.isNew) {
+    let eventExists;
     try {
-      const eventExists = await Event.findById(booking.eventId).select('_id');
-
-      if (!eventExists) {
-        const error = new mongoose.Error.ValidationError();
-        error.addError(
-          'eventId',
-          new mongoose.Error.ValidatorError({
-            message: `Event with ID ${booking.eventId} does not exist`,
-            path: 'eventId',
-            value: booking.eventId,
-          })
-        );
-        throw error;
-      }
+      eventExists = await Event.findById(booking.eventId).select('_id');
     } catch {
       const validationError = new mongoose.Error.ValidationError();
       validationError.addError(
@@ -68,6 +56,19 @@ BookingSchema.pre('save', async function (this: IBooking) {
         })
       );
       throw validationError;
+    }
+
+    if (!eventExists) {
+      const error = new mongoose.Error.ValidationError();
+      error.addError(
+        'eventId',
+        new mongoose.Error.ValidatorError({
+          message: `Event with ID ${booking.eventId} does not exist`,
+          path: 'eventId',
+          value: booking.eventId,
+        })
+      );
+      throw error;
     }
   }
 });
