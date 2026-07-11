@@ -13,7 +13,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.23.0",
-    "mongodb": "^7.4.0",
+    "mongodb": "^7.5.0",
     "mongoose": "^9.7.4",
     "next": "16.3.0-canary.75",
     "ogl": "^1.0.11",
