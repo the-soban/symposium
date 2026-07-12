@@ -95,7 +95,7 @@
   }
 
   @utility text-gradient {
-    @apply bg-gradient-to-b from-white via-white bg-clip-text font-semibold text-transparent to-[#FF8242];
+    @apply bg-gradient-to-b from-white via-white bg-clip-text font-semibold text-transparent to-[#FCFF31];
   }
 
   @utility glass {
