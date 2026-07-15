@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import dns from "node:dns";
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 // Define the connection cache type
 type MongooseCache = {
